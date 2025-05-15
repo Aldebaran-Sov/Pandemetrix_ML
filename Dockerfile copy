@@ -1,0 +1,16 @@
+FROM python:3.9-slim
+
+WORKDIR /Pandemetrix_ML
+
+# Copy the requirements file
+COPY ./ /Pandemetrix_ML
+
+# Update pip and install dependencies
+# RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code
+# COPY . /Pandemetrix_ML
+
+
+CMD ["bash"]

@@ -1,0 +1,10 @@
+services:
+  python-dev:
+    build: .
+    # autres configurations...
+    volumes:
+      - ./:/Pandemetrix_ML
+    tty: true
+    stdin_open: true
+    environment:
+      - PYTHONPATH=/Pandemetrix_ML

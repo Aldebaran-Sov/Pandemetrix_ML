@@ -1,0 +1,8 @@
+pandas
+numpy
+plotly
+scikit-learn
+jupyter
+deltalake
+# delta-spark==3.3.0
+# pyspark==3.5.5

@@ -1,0 +1,59 @@
+data_encoded = pd.get_dummies(df_merge, columns=["country"], prefix="country1")
+# data_encoded = df.copy()
+# Supprime les colonnes dont toutes les valeurs sont NaN
+data_encoded = data_encoded.dropna(axis=1, how='all')
+
+data_encoded.dropna(inplace=True)
+data_encoded.to_csv("data/raw/merged_data_encoded.csv", index=False)
+# features = ["nouveaux_cas"] + [col for col in data_encoded.columns if col.startswith("date")]
+y = data_encoded["new_deaths"]
+data_encoded["date"] = data_encoded["date"].astype('datetime64[ns]')
+data_encoded["date"] = data_encoded["date"].astype('int64') // 10**9
+# features = ["date","new_cases","people_vaccinated", "new_tests", "daily_occupancy_hosp"]
+features = ["date", "new_cases", "people_vaccinated", "new_tests", "daily_occupancy_hosp"] + [col for col in data_encoded.columns if col.startswith("country1_")]
+
+X = data_encoded[features]  # Variables explicatives
+  # Variable cible
+X.to_csv("data/raw/X.csv", index=False)
+# Diviser les données en entraînement et test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Créer et entraîner le modèle de régression linéaire
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Prédire les prix sur les données de test
+y_pred = model.predict(X_test)
+
+# Évaluer les performances du modèle
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+mape = (abs(y_test - y_pred) / abs(y_test)).mean() * 100
+
+print(f"Performances du modèle régression linéaire:")
+print(f"Coefficient de détermination (R²) : {r2}")
+# print(f"Mean Squared Error (MSE) : {mse}")
+print(f"Mean Absolute Error (MAE) : {mae}")
+
+model_poly = PolynomialFeatures(degree=3)
+X_poly_train = model_poly.fit_transform(X_train)
+X_poly_test = model_poly.transform(X_test)
+poly_model = LinearRegression()
+poly_model.fit(X_poly_train, y_train)
+y_poly_pred = poly_model.predict(X_poly_test)
+
+# Évaluer les performances du modèle polynomial
+mse_poly = mean_squared_error(y_test, y_poly_pred)
+r2_poly = r2_score(y_test, y_poly_pred)
+mae_poly = mean_absolute_error(y_test, y_poly_pred)
+mape_poly = (abs(y_test - y_poly_pred) / abs(y_test)).mean() * 100
+
+print(f"Performances du modèle régression polynomial:")
+print(f"Coefficient de détermination (R²) : {r2_poly}")
+# print(f"Mean Squared Error (MSE) : {mse_poly}")
+print(f"Mean Absolute Error (MAE) : {mae_poly}")
+# print(f"Mean Absolute Percentage Error (MAPE) : {mape_poly}")
+
+
+
