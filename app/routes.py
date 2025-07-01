@@ -33,6 +33,8 @@ def load_model_and_metadata():
         
     except FileNotFoundError as e:
         print(f"Fichier manquant: {e}")
+        model = None
+        metadata = None
         return False
     except Exception as e:
         print(f"Erreur chargement: {e}")
@@ -151,6 +153,8 @@ def init_routes(app):
         @api.doc('health_check', description='Vérification de l\'état de l\'API')
         def get(self):
             """Vérification de l'état de l'API"""
+            if not metadata or not model:
+                load_model_and_metadata()
             return {
                 "status": "healthy" if (model is not None and metadata is not None) else "degraded",
                 "timestamp": datetime.now().isoformat(),
@@ -264,4 +268,4 @@ def init_routes(app):
                 return {"message": "Modèle entraîné avec succès"}, 200
             except Exception as e:
                 return {"error": str(e)}, 500
-                
+            
