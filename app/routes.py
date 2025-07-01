@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+from app.models import main as model_trainer
 
 # Variables globales
 model = None
@@ -189,63 +190,15 @@ def init_routes(app):
                 "note": "Utilisez exactement ces noms de pays dans vos requêtes"
             }
         
-        @covid_ns.route('/model-info')
-        class ModelInfo(Resource):
-            @api.doc('get_model_info', description='Informations détaillées sur le modèle ML')
-            def get(self):
-                """Informations détaillées sur le modèle ML"""
-                if not metadata:
-                    return {"error": "Métadonnées non chargées"}, 500
-                    
-                return metadata
-    
-    # @covid_ns.route('/predict')
-    # class Predict(Resource):
-    #     @api.expect(models['prediction_input'])
-    #     @api.marshal_with(models['prediction_output'])
-    #     @api.doc('make_prediction', description='Effectue une prédiction de mortalité COVID-19')
-    #     def post(self):
-    #         """Effectue une prédiction de mortalité COVID-19"""
-    #         try:
-    #             if not model or not metadata:
-    #                 return {"error": "Modèle ou métadonnées non chargés"}, 500
+    @covid_ns.route('/model-info')
+    class ModelInfo(Resource):
+        @api.doc('get_model_info', description='Informations détaillées sur le modèle ML')
+        def get(self):
+            """Informations détaillées sur le modèle ML"""
+            if not metadata:
+                return {"error": "Métadonnées non chargées"}, 500
                 
-    #             data = request.get_json()
-    #             if not data:
-    #                 return {"error": "Données JSON requises"}, 400
-                
-    #             is_valid, errors = validate_input_data(data)
-    #             if not is_valid:
-    #                 return {"error": "Données invalides", "details": errors}, 400
-                
-    #             features_df = prepare_features_for_prediction(data)
-    #             prediction = model.predict(features_df)[0]
-    #             prediction = max(0, prediction)
-                
-    #             return {
-    #                 "prediction": {
-    #                     "new_deaths_predicted": round(prediction, 2),
-    #                     "country": data["country"],
-    #                     "date": data["date"],
-    #                     "confidence": "Model trained on historical data"
-    #                 },
-    #                 "input_data": {
-    #                     "new_cases": data["new_cases"],
-    #                     "people_vaccinated": data.get("people_vaccinated", 0),
-    #                     "new_tests": data.get("new_tests", 0),
-    #                     "daily_occupancy_hosp": data.get("daily_occupancy_hosp", 0)
-    #                 },
-    #                 "model_info": {
-    #                     "version": metadata["model_info"]["version"],
-    #                     "algorithm": metadata["model_info"]["algorithm"],
-    #                     "r2_score": round(metadata["performance"]["test_r2"], 4),
-    #                     "mae": round(metadata["performance"]["test_mae"], 2)
-    #                 },
-    #                 "timestamp": datetime.now().isoformat()
-    #             }
-                
-    #         except Exception as e:
-    #             return {"error": f"Erreur lors de la prédiction: {str(e)}"}, 500
+            return metadata
     
     @covid_ns.route('/predict-batch')
     class PredictBatch(Resource):
@@ -300,3 +253,15 @@ def init_routes(app):
                 
             except Exception as e:
                 return {"error": f"Erreur lors de la prédiction batch: {str(e)}"}, 500
+            
+    @covid_ns.route('/train_model')
+    class TrainModel(Resource):
+        def get(self):
+            """Entraînement du modèle"""
+            try:
+                # Appel de la fonction main() qui lance la pipeline
+                model_trainer()
+                return {"message": "Modèle entraîné avec succès"}, 200
+            except Exception as e:
+                return {"error": str(e)}, 500
+                

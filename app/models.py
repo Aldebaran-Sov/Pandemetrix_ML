@@ -1,4 +1,3 @@
-# app/models.py
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -10,6 +9,7 @@ import joblib
 import json
 import os
 from datetime import datetime
+from app.db import get_db
 
 def load_and_merge_data():
     """
@@ -18,18 +18,24 @@ def load_and_merge_data():
     print("Chargement et fusion des données sources...")
     
     try:
-        # Chargement des fichiers sources
-        print("   Chargement cases_deaths.csv...")
-        df_cases = pd.read_csv("data/raw/cases_deaths.csv")
-        
-        print("   Chargement vaccinations_global.csv...")
-        df_vaccines = pd.read_csv("data/raw/vaccinations_global.csv")
-        
-        print("   Chargement hospital.csv...")
-        df_hospital = pd.read_csv("data/raw/hospital.csv")
-        
-        print("   Chargement testing.csv...")
-        df_testing = pd.read_csv("data/raw/testing.csv")
+        db = get_db()  # Utilise la fonction de connexion à la base de données
+
+        # Charger les collections en DataFrames
+        print("   Lecture de la collection cases_deaths...")
+        df_cases = pd.DataFrame(list(db.cases_deaths.find()))
+
+        print("   Lecture de la collection vaccinations_global...")
+        df_vaccines = pd.DataFrame(list(db.vaccinations_global.find()))
+
+        print("   Lecture de la collection hospital...")
+        df_hospital = pd.DataFrame(list(db.hospital.find()))
+
+        print("   Lecture de la collection testing...")
+        df_testing = pd.DataFrame(list(db.testing.find()))
+
+        # Supprimer l'ObjectId si présent
+        for df in [df_cases, df_vaccines, df_hospital, df_testing]:
+            df.drop(columns=["_id"], inplace=True, errors="ignore")
         
         # Fusion séquentielle
         print("Fusion des datasets...")
@@ -52,8 +58,8 @@ def load_and_merge_data():
         return df_merge
         
     except FileNotFoundError as e:
-        print(f"ERREUR - Fichier manquant: {e}")
-        print("Assure-toi que tous les fichiers CSV sont dans le dossier data/raw/")
+        print(f"ERREUR - Collection manquante: {e}")
+        print("Assure-toi d'avoir importé correctement les collections manquantes")
         raise
     except Exception as e:
         print(f"ERREUR lors du chargement: {e}")

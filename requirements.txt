@@ -7,3 +7,4 @@ numpy
 requests
 pytest
 python-dotenv
+pymongo

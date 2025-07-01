@@ -10,6 +10,7 @@ venv/
 .DS_Store
 *.log
 data/processed/
-models/*.pkl
+data/raw
+models/
 .pytest_cache/
 *.csv
